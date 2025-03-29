@@ -1,11 +1,11 @@
 "use client";
 
 import { useAuth } from '@/context/AuthContext';
-import { useDocuments, Document } from '@/context/DocumentContext';
+import { useDocuments } from '@/context/DocumentContext';
+import { Document, Template } from '@/types/models';
 import { useTemplates } from '@/context/TemplateContext';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Template } from '@/context/TemplateContext';
 
 export default function Dashboard() {
   const { user } = useAuth();

@@ -1,5 +1,4 @@
-import { Document } from '@/context/DocumentContext';
-import { Template } from '@/context/TemplateContext';
+import { Document, Template } from '@/types/models';
 import { User } from '@/context/AuthContext';
 
 export interface ApiResponse<T> {
