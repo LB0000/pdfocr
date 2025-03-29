@@ -10,6 +10,7 @@ interface TemplateContextType {
   error: string | null;
   fetchTemplates: () => Promise<void>;
   fetchTemplateById: (id: string) => Promise<void>;
+  getTemplate: (id: string) => Template | null;
   createTemplate: (data: TemplateCreateData) => Promise<void>;
   updateTemplate: (id: string, data: Partial<Template>) => Promise<void>;
   deleteTemplate: (id: string) => Promise<void>;
@@ -92,6 +93,7 @@ const defaultTemplateContext: TemplateContextType = {
   error: null,
   fetchTemplates: async () => {},
   fetchTemplateById: async () => {},
+  getTemplate: () => null,
   createTemplate: async () => {},
   updateTemplate: async () => {},
   deleteTemplate: async () => {},
@@ -398,23 +400,30 @@ export const TemplateProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // テンプレートの取得
+  const getTemplate = (id: string): Template | null => {
+    return templates.find(template => template.id === id) || null;
+  };
+
+  // コンテキストの値
+  const value: TemplateContextType = {
+    templates,
+    currentTemplate,
+    isLoading,
+    error,
+    fetchTemplates,
+    fetchTemplateById,
+    getTemplate,
+    createTemplate,
+    updateTemplate,
+    deleteTemplate,
+    addFieldDefinition,
+    updateFieldDefinition,
+    deleteFieldDefinition
+  };
+
   return (
-    <TemplateContext.Provider
-      value={{
-        templates,
-        currentTemplate,
-        isLoading,
-        error,
-        fetchTemplates,
-        fetchTemplateById,
-        createTemplate,
-        updateTemplate,
-        deleteTemplate,
-        addFieldDefinition,
-        updateFieldDefinition,
-        deleteFieldDefinition
-      }}
-    >
+    <TemplateContext.Provider value={value}>
       {children}
     </TemplateContext.Provider>
   );
