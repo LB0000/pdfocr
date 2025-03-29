@@ -17,7 +17,7 @@ export default function DocumentUploadForm() {
   const router = useRouter();
   
   useEffect(() => {
-    fetchTemplates(true); // アクティブなテンプレートのみ取得
+    fetchTemplates(); // テンプレート一覧を取得
   }, [fetchTemplates]);
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
