@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 
 export default function CreateTemplatePage() {
   const { user, isLoading: authLoading } = useAuth();
-  const { createTemplate, loading: templateLoading } = useTemplates();
+  const { createTemplate, isLoading: templateLoading } = useTemplates();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [error, setError] = useState<string | null>(null);
