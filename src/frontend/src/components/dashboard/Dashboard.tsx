@@ -2,7 +2,7 @@
 
 import { useAuth } from '@/context/AuthContext';
 import { useDocuments } from '@/context/DocumentContext';
-import { Document, Template } from '@/types/models';
+import { Document, Template, DocumentStatus } from '@/types/models';
 import { useTemplates } from '@/context/TemplateContext';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -29,7 +29,7 @@ export default function Dashboard() {
   useEffect(() => {
     if (documents.length > 0) {
       // 最近のドキュメント（最大5件）
-      const sorted = [...documents].sort((a, b) => 
+      const sorted = [...documents].sort((a: Document, b: Document) => 
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
       setRecentDocuments(sorted.slice(0, 5));
@@ -47,7 +47,7 @@ export default function Dashboard() {
   }, [documents]);
   
   // ステータスに応じたバッジの色を取得
-  const getStatusBadgeColor = (status: string) => {
+  const getStatusBadgeColor = (status: DocumentStatus): string => {
     switch (status) {
       case 'pending': return 'bg-yellow-100 text-yellow-800';
       case 'processing': return 'bg-blue-100 text-blue-800';
@@ -58,7 +58,7 @@ export default function Dashboard() {
   };
   
   // ステータスの日本語表示
-  const getStatusLabel = (status: string) => {
+  const getStatusLabel = (status: DocumentStatus): string => {
     switch (status) {
       case 'pending': return '待機中';
       case 'processing': return '処理中';
@@ -180,7 +180,7 @@ export default function Dashboard() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {recentDocuments.map((document) => (
+                {recentDocuments.map((document: Document) => (
                   <tr key={document.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">{document.name}</div>
@@ -233,7 +233,7 @@ export default function Dashboard() {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {templates.slice(0, 3).map((template) => (
+            {templates.slice(0, 3).map((template: Template) => (
               <div key={template.id} className="p-4 border border-gray-200 rounded-md hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-sm font-medium text-gray-900">{template.name}</h3>
