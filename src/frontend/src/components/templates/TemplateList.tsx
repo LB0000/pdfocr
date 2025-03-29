@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 export default function TemplateList() {
-  const { templates, loading, error, fetchTemplates } = useTemplates();
+  const { templates, isLoading, error, fetchTemplates } = useTemplates();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
   
@@ -61,7 +61,7 @@ export default function TemplateList() {
         </div>
       </div>
       
-      {loading ? (
+      {isLoading ? (
         <div className="flex items-center justify-center p-8">
           <div className="text-gray-500">読み込み中...</div>
         </div>

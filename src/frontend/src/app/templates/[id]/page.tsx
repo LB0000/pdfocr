@@ -22,9 +22,9 @@ export default function TemplateDetailPage({ params }: TemplateDetailPageProps) 
 }
 
 function TemplateDetailContent({ templateId }: { templateId: string }) {
-  const { user, loading } = useAuth();
+  const { user, isLoading } = useAuth();
   
-  if (!loading && !user) {
+  if (!isLoading && !user) {
     redirect('/login');
   }
   

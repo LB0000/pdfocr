@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 export default function DocumentList() {
-  const { documents, loading, error, fetchDocuments } = useDocuments();
+  const { documents, isLoading, error, fetchDocuments } = useDocuments();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   
@@ -83,7 +83,7 @@ export default function DocumentList() {
         </div>
       </div>
       
-      {loading ? (
+      {isLoading ? (
         <div className="flex items-center justify-center p-8">
           <div className="text-gray-500">読み込み中...</div>
         </div>

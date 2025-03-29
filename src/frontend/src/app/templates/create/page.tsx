@@ -7,7 +7,7 @@ import { useTemplates } from '@/context/TemplateContext';
 import { useRouter } from 'next/navigation';
 
 export default function CreateTemplatePage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const { createTemplate, loading: templateLoading } = useTemplates();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
