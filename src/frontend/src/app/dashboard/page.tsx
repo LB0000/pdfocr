@@ -16,9 +16,9 @@ export default function DashboardPage() {
 }
 
 function DashboardContent() {
-  const { user, loading } = useAuth();
+  const { user, isLoading } = useAuth();
   
-  if (!loading && !user) {
+  if (!isLoading && !user) {
     redirect('/login');
   }
   
