@@ -1,64 +1,81 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+"use client";
+
+import { createContext, useContext, useState, ReactNode } from 'react';
 
 // ドキュメントコンテキストの型定義
 interface DocumentContextType {
   documents: Document[];
-  loading: boolean;
+  currentDocument: Document | null;
+  isLoading: boolean;
   error: string | null;
   fetchDocuments: () => Promise<void>;
-  getDocument: (id: string) => Promise<Document>;
-  uploadDocument: (file: File, description?: string, templateId?: string) => Promise<void>;
+  fetchDocumentById: (id: string) => Promise<void>;
+  uploadDocument: (file: File, templateId?: string) => Promise<void>;
   updateDocument: (id: string, data: Partial<Document>) => Promise<void>;
   deleteDocument: (id: string) => Promise<void>;
 }
 
 // ドキュメント型定義
-export interface Document {
+interface Document {
   id: string;
-  fileName: string;
-  description?: string;
-  status: 'pending' | 'processing' | 'completed' | 'error';
-  originalFilePath?: string;
-  processedFilePath?: string;
-  ocrResult?: any;
-  layoutAnalysisResult?: any;
-  confidenceScore: number;
-  templateId?: string;
-  template?: any;
+  name: string;
+  filePath: string;
+  status: string;
   createdAt: string;
   updatedAt: string;
+  templateId?: string;
+  fields?: DocumentField[];
 }
 
-// デフォルト値
+// ドキュメントフィールド型定義
+interface DocumentField {
+  id: string;
+  name: string;
+  value: string;
+  confidence: number;
+  fieldDefinitionId: string;
+}
+
+// デフォルト値の作成
 const defaultDocumentContext: DocumentContextType = {
   documents: [],
-  loading: false,
+  currentDocument: null,
+  isLoading: false,
   error: null,
   fetchDocuments: async () => {},
-  getDocument: async () => ({} as Document),
+  fetchDocumentById: async () => {},
   uploadDocument: async () => {},
   updateDocument: async () => {},
-  deleteDocument: async () => {},
+  deleteDocument: async () => {}
 };
 
-// コンテキスト作成
+// コンテキストの作成
 const DocumentContext = createContext<DocumentContextType>(defaultDocumentContext);
 
-// コンテキストプロバイダー
-export function DocumentProvider({ children }: { children: ReactNode }) {
+// コンテキストプロバイダーコンポーネント
+export const DocumentProvider = ({ children }: { children: ReactNode }) => {
   const [documents, setDocuments] = useState<Document[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [currentDocument, setCurrentDocument] = useState<Document | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // ドキュメント一覧取得
+  // トークンの取得
+  const getToken = () => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('token');
+    }
+    return null;
+  };
+
+  // ドキュメント一覧の取得
   const fetchDocuments = async () => {
-    setLoading(true);
+    setIsLoading(true);
     setError(null);
     
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       if (!token) {
-        throw new Error('認証されていません');
+        throw new Error('認証が必要です');
       }
       
       const response = await fetch('/api/documents', {
@@ -67,30 +84,29 @@ export function DocumentProvider({ children }: { children: ReactNode }) {
         }
       });
       
+      const data = await response.json();
+      
       if (!response.ok) {
-        const data = await response.json();
         throw new Error(data.message || 'ドキュメントの取得に失敗しました');
       }
       
-      const data = await response.json();
       setDocuments(data);
-    } catch (err: any) {
-      setError(err.message);
-      console.error('ドキュメント取得エラー:', err);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '予期せぬエラーが発生しました');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  // ドキュメント詳細取得
-  const getDocument = async (id: string): Promise<Document> => {
-    setLoading(true);
+  // ドキュメント詳細の取得
+  const fetchDocumentById = async (id: string) => {
+    setIsLoading(true);
     setError(null);
     
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       if (!token) {
-        throw new Error('認証されていません');
+        throw new Error('認証が必要です');
       }
       
       const response = await fetch(`/api/documents/${id}`, {
@@ -99,40 +115,33 @@ export function DocumentProvider({ children }: { children: ReactNode }) {
         }
       });
       
+      const data = await response.json();
+      
       if (!response.ok) {
-        const data = await response.json();
         throw new Error(data.message || 'ドキュメントの取得に失敗しました');
       }
       
-      const document = await response.json();
-      return document;
-    } catch (err: any) {
-      setError(err.message);
-      console.error('ドキュメント詳細取得エラー:', err);
-      throw err;
+      setCurrentDocument(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '予期せぬエラーが発生しました');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  // ドキュメントアップロード
-  const uploadDocument = async (file: File, description?: string, templateId?: string) => {
-    setLoading(true);
+  // ドキュメントのアップロード
+  const uploadDocument = async (file: File, templateId?: string) => {
+    setIsLoading(true);
     setError(null);
     
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       if (!token) {
-        throw new Error('認証されていません');
+        throw new Error('認証が必要です');
       }
       
       const formData = new FormData();
       formData.append('file', file);
-      
-      if (description) {
-        formData.append('description', description);
-      }
-      
       if (templateId) {
         formData.append('templateId', templateId);
       }
@@ -145,67 +154,72 @@ export function DocumentProvider({ children }: { children: ReactNode }) {
         body: formData
       });
       
+      const data = await response.json();
+      
       if (!response.ok) {
-        const data = await response.json();
         throw new Error(data.message || 'ドキュメントのアップロードに失敗しました');
       }
       
-      // ドキュメント一覧を更新
+      // 成功したら一覧を更新
       await fetchDocuments();
-    } catch (err: any) {
-      setError(err.message);
-      console.error('ドキュメントアップロードエラー:', err);
-      throw err;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '予期せぬエラーが発生しました');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  // ドキュメント更新
+  // ドキュメントの更新
   const updateDocument = async (id: string, data: Partial<Document>) => {
-    setLoading(true);
+    setIsLoading(true);
     setError(null);
     
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       if (!token) {
-        throw new Error('認証されていません');
+        throw new Error('認証が必要です');
       }
       
       const response = await fetch(`/api/documents/${id}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(data)
       });
       
+      const responseData = await response.json();
+      
       if (!response.ok) {
-        const responseData = await response.json();
         throw new Error(responseData.message || 'ドキュメントの更新に失敗しました');
       }
       
-      // ドキュメント一覧を更新
-      await fetchDocuments();
-    } catch (err: any) {
-      setError(err.message);
-      console.error('ドキュメント更新エラー:', err);
-      throw err;
+      // 現在表示中のドキュメントを更新
+      if (currentDocument && currentDocument.id === id) {
+        setCurrentDocument({ ...currentDocument, ...data });
+      }
+      
+      // 一覧も更新
+      setDocuments(documents.map(doc => 
+        doc.id === id ? { ...doc, ...data } : doc
+      ));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '予期せぬエラーが発生しました');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  // ドキュメント削除
+  // ドキュメントの削除
   const deleteDocument = async (id: string) => {
-    setLoading(true);
+    setIsLoading(true);
     setError(null);
     
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       if (!token) {
-        throw new Error('認証されていません');
+        throw new Error('認証が必要です');
       }
       
       const response = await fetch(`/api/documents/${id}`, {
@@ -215,35 +229,44 @@ export function DocumentProvider({ children }: { children: ReactNode }) {
         }
       });
       
+      const data = await response.json();
+      
       if (!response.ok) {
-        const data = await response.json();
         throw new Error(data.message || 'ドキュメントの削除に失敗しました');
       }
       
-      // ドキュメント一覧から削除したドキュメントを除外
-      setDocuments(prev => prev.filter(doc => doc.id !== id));
-    } catch (err: any) {
-      setError(err.message);
-      console.error('ドキュメント削除エラー:', err);
-      throw err;
+      // 一覧から削除
+      setDocuments(documents.filter(doc => doc.id !== id));
+      
+      // 現在表示中のドキュメントをクリア
+      if (currentDocument && currentDocument.id === id) {
+        setCurrentDocument(null);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '予期せぬエラーが発生しました');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const value = {
-    documents,
-    loading,
-    error,
-    fetchDocuments,
-    getDocument,
-    uploadDocument,
-    updateDocument,
-    deleteDocument
-  };
-
-  return <DocumentContext.Provider value={value}>{children}</DocumentContext.Provider>;
-}
+  return (
+    <DocumentContext.Provider
+      value={{
+        documents,
+        currentDocument,
+        isLoading,
+        error,
+        fetchDocuments,
+        fetchDocumentById,
+        uploadDocument,
+        updateDocument,
+        deleteDocument
+      }}
+    >
+      {children}
+    </DocumentContext.Provider>
+  );
+};
 
 // カスタムフック
-export const useDocuments = () => useContext(DocumentContext);
+export const useDocument = () => useContext(DocumentContext);

@@ -1,14 +1,16 @@
+"use client";
+
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 // 認証コンテキストの型定義
 interface AuthContextType {
   user: User | null;
-  loading: boolean;
-  error: string | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
-  updateUser: (userData: Partial<User>) => Promise<void>;
+  error: string | null;
 }
 
 // ユーザー型定義
@@ -19,69 +21,50 @@ interface User {
   role: string;
 }
 
-// デフォルト値
+// デフォルト値の作成
 const defaultAuthContext: AuthContextType = {
   user: null,
-  loading: false,
-  error: null,
+  isAuthenticated: false,
+  isLoading: true,
   login: async () => {},
   register: async () => {},
   logout: () => {},
-  updateUser: async () => {},
+  error: null
 };
 
-// コンテキスト作成
+// コンテキストの作成
 const AuthContext = createContext<AuthContextType>(defaultAuthContext);
 
-// コンテキストプロバイダー
-export function AuthProvider({ children }: { children: ReactNode }) {
+// コンテキストプロバイダーコンポーネント
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // 初期化時にローカルストレージからユーザー情報を取得
   useEffect(() => {
-    const initAuth = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        if (token) {
-          // トークンがある場合、ユーザー情報を取得
-          const response = await fetch('/api/auth/me', {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
-          
-          if (response.ok) {
-            const userData = await response.json();
-            setUser(userData);
-          } else {
-            // トークンが無効な場合はログアウト
-            localStorage.removeItem('token');
-          }
-        }
-      } catch (err) {
-        console.error('認証初期化エラー:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    initAuth();
+    const storedUser = localStorage.getItem('user');
+    const token = localStorage.getItem('token');
+    
+    if (storedUser && token) {
+      setUser(JSON.parse(storedUser));
+    }
+    
+    setIsLoading(false);
   }, []);
 
-  // ログイン関数
+  // ログイン処理
   const login = async (email: string, password: string) => {
-    setLoading(true);
+    setIsLoading(true);
     setError(null);
     
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password }),
       });
       
       const data = await response.json();
@@ -90,103 +73,71 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error(data.message || 'ログインに失敗しました');
       }
       
-      // トークンをローカルストレージに保存
       localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
       
-      // ユーザー情報を設定
       setUser(data.user);
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '予期せぬエラーが発生しました');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  // 登録関数
+  // 登録処理
   const register = async (name: string, email: string, password: string) => {
-    setLoading(true);
+    setIsLoading(true);
     setError(null);
     
     try {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name, email, password })
+        body: JSON.stringify({ name, email, password }),
       });
       
       const data = await response.json();
       
       if (!response.ok) {
-        throw new Error(data.message || '登録に失敗しました');
+        throw new Error(data.message || 'ユーザー登録に失敗しました');
       }
       
-      // 登録後に自動ログイン
-      await login(email, password);
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      
+      setUser(data.user);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '予期せぬエラーが発生しました');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  // ログアウト関数
+  // ログアウト処理
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     setUser(null);
   };
 
-  // ユーザー情報更新関数
-  const updateUser = async (userData: Partial<User>) => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('認証されていません');
-      }
-      
-      const response = await fetch('/api/auth/update', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(userData)
-      });
-      
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.message || 'ユーザー情報の更新に失敗しました');
-      }
-      
-      // ユーザー情報を更新
-      setUser(prev => prev ? { ...prev, ...data.user } : null);
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const value = {
-    user,
-    loading,
-    error,
-    login,
-    register,
-    logout,
-    updateUser
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated: !!user,
+        isLoading,
+        login,
+        register,
+        logout,
+        error
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+};
 
 // カスタムフック
 export const useAuth = () => useContext(AuthContext);
