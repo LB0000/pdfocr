@@ -25,7 +25,10 @@ export default function TemplateDetail({ templateId }: TemplateDetailProps) {
     const loadData = async () => {
       try {
         setIsLoading(true);
-        const templateData = await getTemplate(templateId);
+        const templateData = getTemplate(templateId);
+        if (!templateData) {
+          throw new Error('テンプレートが見つかりません');
+        }
         setTemplate(templateData);
         setName(templateData.name);
         setDescription(templateData.description || '');
@@ -54,7 +57,10 @@ export default function TemplateDetail({ templateId }: TemplateDetailProps) {
       });
       
       // 更新後の情報を再取得
-      const updatedTemplate = await getTemplate(templateId);
+      const updatedTemplate = getTemplate(templateId);
+      if (!updatedTemplate) {
+        throw new Error('テンプレートが見つかりません');
+      }
       setTemplate(updatedTemplate);
       setIsEditing(false);
     } catch (err: any) {
