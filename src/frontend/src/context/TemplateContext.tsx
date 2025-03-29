@@ -57,6 +57,7 @@ export interface FieldDefinition {
   description?: string;
   fieldType: string;
   validationRegex?: string;
+  displayOrder?: number;
   coordinates?: {
     x: number;
     y: number;
