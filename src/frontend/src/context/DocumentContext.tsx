@@ -3,53 +3,13 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import {
   Document,
+  DocumentContextType,
   DocumentUploadData,
   DocumentResponse,
   SingleDocumentResponse,
-  ApiResponse
+  ApiResponse,
+  DocumentField
 } from '@/types/models';
-
-// ドキュメントコンテキストの型定義
-interface DocumentContextType {
-  documents: Document[];
-  currentDocument: Document | null;
-  isLoading: boolean;
-  error: string | null;
-  fetchDocuments: () => Promise<void>;
-  fetchDocument: (id: string) => Promise<Document>;
-  uploadDocument: (data: DocumentUploadData) => Promise<Document>;
-  updateDocument: (id: string, data: Partial<Document>) => Promise<Document>;
-  deleteDocument: (id: string) => Promise<void>;
-}
-
-// ドキュメント型定義
-export interface Document {
-  id: string;
-  name: string;
-  description?: string;
-  status: 'pending' | 'processing' | 'completed' | 'error';
-  createdAt: string;
-  updatedAt: string;
-  templateId?: string;
-  fields?: Record<string, any>;
-  confidenceScore?: number;
-  ocrResult?: string | Record<string, any>;
-}
-
-// ドキュメントフィールド型定義
-export interface DocumentField {
-  name: string;
-  value: string;
-  confidence: number;
-}
-
-// ドキュメントアップロードデータ型定義
-export interface DocumentUploadData {
-  name: string;
-  description?: string;
-  templateId?: string;
-  file: File;
-}
 
 // デフォルト値の作成
 const defaultDocumentContext: DocumentContextType = {
@@ -298,3 +258,6 @@ export function useDocuments() {
   }
   return context;
 }
+
+// 型のエクスポート
+export type { Document, DocumentUploadData };
