@@ -37,10 +37,10 @@ export default function Dashboard() {
       // ドキュメント統計
       const stats = {
         total: documents.length,
-        pending: documents.filter(doc => doc.status === 'pending').length,
-        processing: documents.filter(doc => doc.status === 'processing').length,
-        completed: documents.filter(doc => doc.status === 'completed').length,
-        error: documents.filter(doc => doc.status === 'error').length
+        pending: documents.filter((doc: Document) => doc.status === 'pending').length,
+        processing: documents.filter((doc: Document) => doc.status === 'processing').length,
+        completed: documents.filter((doc: Document) => doc.status === 'completed').length,
+        error: documents.filter((doc: Document) => doc.status === 'error').length
       };
       setDocumentStats(stats);
     }
