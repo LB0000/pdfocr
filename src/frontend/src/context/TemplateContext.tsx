@@ -19,7 +19,7 @@ interface TemplateContextType {
 }
 
 // テンプレート型定義
-interface Template {
+export interface Template {
   id: string;
   name: string;
   description: string;
@@ -28,8 +28,28 @@ interface Template {
   updatedAt: string;
 }
 
+// テンプレートフィールド型定義
+export interface TemplateField {
+  id: string;
+  name: string;
+  description?: string;
+  fieldType: string;
+  validationRegex?: string;
+  coordinates?: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+}
+
+// テンプレートとフィールドを含む型定義
+export interface TemplateWithFields extends Template {
+  fields: TemplateField[];
+}
+
 // フィールド定義型定義
-interface FieldDefinition {
+export interface FieldDefinition {
   id: string;
   name: string;
   description?: string;
@@ -44,13 +64,14 @@ interface FieldDefinition {
 }
 
 // テンプレート作成データ型定義
-interface TemplateCreateData {
+export interface TemplateCreateData {
   name: string;
   description: string;
+  fields: FieldDefinitionCreateData[];
 }
 
 // フィールド定義作成データ型定義
-interface FieldDefinitionCreateData {
+export interface FieldDefinitionCreateData {
   name: string;
   description?: string;
   fieldType: string;
