@@ -1,6 +1,9 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany } from 'typeorm';
 import { User } from './User';
 import { DocumentField } from './DocumentField';
+import { DocumentTemplate } from './DocumentTemplate';
+
+export type DocumentStatus = 'pending' | 'processing' | 'completed' | 'error';
 
 @Entity()
 export class Document {
@@ -16,11 +19,14 @@ export class Document {
   @Column()
   filePath!: string;
 
-  @Column({ default: 'pending' })
-  status!: string;
+  @Column({ type: 'enum', enum: ['pending', 'processing', 'completed', 'error'], default: 'pending' })
+  status!: DocumentStatus;
 
   @ManyToOne(() => User)
   user!: User;
+
+  @ManyToOne(() => DocumentTemplate, { nullable: true })
+  template!: DocumentTemplate;
 
   @OneToMany(() => DocumentField, field => field.document)
   fields!: DocumentField[];

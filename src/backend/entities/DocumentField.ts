@@ -16,7 +16,7 @@ export class DocumentField {
   confidence!: number;
 
   @Column({ nullable: true, type: 'simple-json' })
-  coordinates!: { x: number; y: number; width: number; height: number };
+  coordinates?: { x: number; y: number; width: number; height: number };
 
   @ManyToOne(() => Document, document => document.fields)
   document!: Document;

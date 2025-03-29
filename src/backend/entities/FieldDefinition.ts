@@ -1,6 +1,8 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne } from 'typeorm';
 import { DocumentTemplate } from './DocumentTemplate';
 
+export type FieldType = 'text' | 'number' | 'date' | 'select' | 'checkbox';
+
 @Entity()
 export class FieldDefinition {
   @PrimaryGeneratedColumn('uuid')
@@ -12,14 +14,20 @@ export class FieldDefinition {
   @Column({ nullable: true })
   description!: string;
 
-  @Column()
-  fieldType!: string;
+  @Column({ type: 'enum', enum: ['text', 'number', 'date', 'select', 'checkbox'] })
+  fieldType!: FieldType;
 
   @Column({ nullable: true })
   validationRegex!: string;
 
   @Column({ type: 'simple-json', nullable: true })
-  coordinates!: { x: number; y: number; width: number; height: number };
+  coordinates?: { x: number; y: number; width: number; height: number };
+
+  @Column({ type: 'simple-json', nullable: true })
+  options?: string[];
+
+  @Column({ default: false })
+  required!: boolean;
 
   @ManyToOne(() => DocumentTemplate, template => template.fields)
   template!: DocumentTemplate;

@@ -12,6 +12,9 @@ export class DocumentTemplate {
   @Column({ nullable: true })
   description!: string;
 
+  @Column({ default: true })
+  isActive!: boolean;
+
   @OneToMany(() => FieldDefinition, field => field.template)
   fields!: FieldDefinition[];
 
