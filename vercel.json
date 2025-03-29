@@ -1,12 +1,17 @@
 {
   "version": 2,
   "builds": [
-    {
-      "src": "src/frontend/package.json",
-      "use": "@vercel/next"
+    { 
+      "src": "src/frontend/next.config.js", 
+      "use": "@vercel/next",
+      "config": {
+        "skipBuildCommand": false,
+        "buildCommand": "cd src/frontend && npm run build",
+        "outputDirectory": "src/frontend/.next"
+      }
     },
-    {
-      "src": "package.json",
+    { 
+      "src": "src/backend/index.ts", 
       "use": "@vercel/node",
       "config": {
         "buildCommand": "npm run build",
@@ -15,16 +20,12 @@
     }
   ],
   "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "dist/index.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "src/frontend/$1"
-    }
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/uploads/(.*)", "dest": "/uploads/$1" },
+    { "src": "/(.*)", "dest": "src/frontend/$1" }
   ],
   "env": {
-    "NODE_VERSION": "18.x"
+    "NODE_VERSION": "18.x",
+    "NEXT_TELEMETRY_DISABLED": "1"
   }
 } 
