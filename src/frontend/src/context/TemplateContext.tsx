@@ -25,6 +25,7 @@ export interface Template {
   name: string;
   description: string;
   fields: TemplateField[];
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
