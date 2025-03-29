@@ -188,7 +188,7 @@ export default function DocumentDetail({ documentId }: DocumentDetailProps) {
             <div className="space-y-4">
               <div>
                 <p className="text-sm font-medium text-gray-500">ファイル名</p>
-                <p className="mt-1 text-sm text-gray-900">{document.fileName}</p>
+                <p className="mt-1 text-sm text-gray-900">{document.name}</p>
               </div>
               
               <div>
