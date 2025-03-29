@@ -15,7 +15,7 @@ export default function DocumentList() {
   
   // 検索とフィルタリング
   const filteredDocuments = documents.filter(doc => {
-    const matchesSearch = doc.fileName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                          (doc.description && doc.description.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesStatus = statusFilter === 'all' || doc.status === statusFilter;
     return matchesSearch && matchesStatus;
@@ -127,7 +127,7 @@ export default function DocumentList() {
               {filteredDocuments.map((document) => (
                 <tr key={document.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{document.fileName}</div>
+                    <div className="text-sm font-medium text-gray-900">{document.name}</div>
                     {document.description && (
                       <div className="text-sm text-gray-500">{document.description}</div>
                     )}
@@ -139,7 +139,7 @@ export default function DocumentList() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">
-                      {document.template ? document.template.name : '未設定'}
+                      {document.templateId ? 'テンプレート設定済み' : '未設定'}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
