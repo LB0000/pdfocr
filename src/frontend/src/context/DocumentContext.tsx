@@ -1,7 +1,13 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { ApiResponse, DocumentResponse, SingleDocumentResponse } from '@/types/api';
+import {
+  Document,
+  DocumentUploadData,
+  DocumentResponse,
+  SingleDocumentResponse,
+  ApiResponse
+} from '@/types/models';
 
 // ドキュメントコンテキストの型定義
 interface DocumentContextType {

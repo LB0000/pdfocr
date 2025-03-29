@@ -1,7 +1,15 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { ApiResponse, TemplateResponse, SingleTemplateResponse } from '@/types/api';
+import {
+  Template,
+  TemplateField,
+  TemplateCreateData,
+  FieldDefinitionCreateData,
+  TemplateResponse,
+  SingleTemplateResponse,
+  ApiResponse
+} from '@/types/models';
 
 // テンプレートコンテキストの型定義
 interface TemplateContextType {
@@ -15,7 +23,7 @@ interface TemplateContextType {
   updateTemplate: (id: string, data: Partial<Template>) => Promise<Template>;
   deleteTemplate: (id: string) => Promise<void>;
   addFieldDefinition: (templateId: string, field: FieldDefinitionCreateData) => Promise<void>;
-  updateFieldDefinition: (templateId: string, fieldId: string, data: Partial<FieldDefinition>) => Promise<void>;
+  updateFieldDefinition: (templateId: string, fieldId: string, data: Partial<TemplateField>) => Promise<void>;
   deleteFieldDefinition: (templateId: string, fieldId: string) => Promise<void>;
 }
 
@@ -310,7 +318,7 @@ export function TemplateProvider({ children }: { children: ReactNode }) {
   };
 
   // フィールド定義の更新
-  const updateFieldDefinition = async (templateId: string, fieldId: string, data: Partial<FieldDefinition>) => {
+  const updateFieldDefinition = async (templateId: string, fieldId: string, data: Partial<TemplateField>) => {
     setIsLoading(true);
     setError(null);
     
