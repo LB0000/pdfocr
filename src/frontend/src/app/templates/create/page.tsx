@@ -30,7 +30,7 @@ export default function CreateTemplatePage() {
       setError(null);
       await createTemplate({
         name,
-        description: description || undefined
+        description: description || ''
       });
       router.push('/templates');
     } catch (err: any) {
