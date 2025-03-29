@@ -9,14 +9,14 @@ interface DocumentContextType {
   isLoading: boolean;
   error: string | null;
   fetchDocuments: () => Promise<void>;
-  fetchDocumentById: (id: string) => Promise<void>;
+  fetchDocumentById: (id: string) => Promise<Document>;
   uploadDocument: (data: DocumentUploadData) => Promise<void>;
   updateDocument: (id: string, data: Partial<Document>) => Promise<void>;
   deleteDocument: (id: string) => Promise<void>;
 }
 
 // ドキュメント型定義
-interface Document {
+export interface Document {
   id: string;
   name: string;
   description: string;
@@ -29,7 +29,7 @@ interface Document {
 }
 
 // ドキュメントフィールド型定義
-interface DocumentField {
+export interface DocumentField {
   id: string;
   name: string;
   value: string;
@@ -38,7 +38,7 @@ interface DocumentField {
 }
 
 // ドキュメントアップロードデータ型定義
-interface DocumentUploadData {
+export interface DocumentUploadData {
   file: File;
   name?: string;
   description?: string;
@@ -52,7 +52,7 @@ const defaultDocumentContext: DocumentContextType = {
   isLoading: false,
   error: null,
   fetchDocuments: async () => {},
-  fetchDocumentById: async () => {},
+  fetchDocumentById: async () => ({ id: '', name: '', description: '', filePath: '', status: '', createdAt: '', updatedAt: '' }),
   uploadDocument: async () => {},
   updateDocument: async () => {},
   deleteDocument: async () => {}
@@ -108,7 +108,7 @@ export const DocumentProvider = ({ children }: { children: ReactNode }) => {
   };
 
   // ドキュメント詳細の取得
-  const fetchDocumentById = async (id: string) => {
+  const fetchDocumentById = async (id: string): Promise<Document> => {
     setIsLoading(true);
     setError(null);
     
@@ -131,8 +131,10 @@ export const DocumentProvider = ({ children }: { children: ReactNode }) => {
       }
       
       setCurrentDocument(data);
+      return data;
     } catch (err) {
       setError(err instanceof Error ? err.message : '予期せぬエラーが発生しました');
+      throw err;
     } finally {
       setIsLoading(false);
     }
