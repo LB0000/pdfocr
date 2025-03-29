@@ -68,7 +68,7 @@ export interface TemplateCreateData {
 export interface FieldDefinitionCreateData {
   name: string;
   description?: string;
-  fieldType: string;
+  fieldType: 'text' | 'number' | 'date' | 'select' | 'checkbox';
   validationRegex?: string;
   coordinates?: {
     x: number;

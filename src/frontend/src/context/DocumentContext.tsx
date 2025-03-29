@@ -52,9 +52,9 @@ const defaultDocumentContext: DocumentContextType = {
   isLoading: false,
   error: null,
   fetchDocuments: async () => {},
-  fetchDocument: async () => ({ id: '', name: '', description: '', filePath: '', status: 'pending', createdAt: '', updatedAt: '' }),
-  uploadDocument: async () => ({ id: '', name: '', description: '', filePath: '', status: 'pending', createdAt: '', updatedAt: '' }),
-  updateDocument: async () => ({ id: '', name: '', description: '', filePath: '', status: 'pending', createdAt: '', updatedAt: '' }),
+  fetchDocument: async () => ({ id: '', name: '', description: '', status: 'pending', createdAt: '', updatedAt: '' }),
+  uploadDocument: async () => ({ id: '', name: '', description: '', status: 'pending', createdAt: '', updatedAt: '' }),
+  updateDocument: async () => ({ id: '', name: '', description: '', status: 'pending', createdAt: '', updatedAt: '' }),
   deleteDocument: async () => {}
 };
 
