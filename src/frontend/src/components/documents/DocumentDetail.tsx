@@ -274,7 +274,7 @@ export default function DocumentDetail({ documentId }: DocumentDetailProps) {
                   <div>
                     <p className="text-sm font-medium text-gray-500">テンプレート</p>
                     <p className="mt-1 text-sm text-gray-900">
-                      {document.template ? document.template.name : 'テンプレートは設定されていません'}
+                      {document.templateId ? 'テンプレート設定済み' : 'テンプレートは設定されていません'}
                     </p>
                   </div>
                 </>
