@@ -22,9 +22,9 @@ export default function DocumentDetailPage({ params }: DocumentDetailPageProps) 
 }
 
 function DocumentDetailContent({ documentId }: { documentId: string }) {
-  const { user, loading } = useAuth();
+  const { user, isLoading } = useAuth();
   
-  if (!loading && !user) {
+  if (!isLoading && !user) {
     redirect('/login');
   }
   
