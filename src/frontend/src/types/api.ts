@@ -1,4 +1,6 @@
-import { Document, Template, User } from '@/context/DocumentContext';
+import { Document } from '@/context/DocumentContext';
+import { Template } from '@/context/TemplateContext';
+import { User } from '@/context/AuthContext';
 
 export interface ApiResponse<T> {
   data: T;

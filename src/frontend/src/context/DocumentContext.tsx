@@ -26,6 +26,8 @@ export interface Document {
   updatedAt: string;
   templateId?: string;
   fields?: Record<string, any>;
+  confidenceScore?: number;
+  ocrResult?: string | Record<string, any>;
 }
 
 // ドキュメントフィールド型定義
@@ -50,9 +52,9 @@ const defaultDocumentContext: DocumentContextType = {
   isLoading: false,
   error: null,
   fetchDocuments: async () => {},
-  fetchDocument: async () => ({ id: '', name: '', description: '', filePath: '', status: '', createdAt: '', updatedAt: '' }),
-  uploadDocument: async () => ({ id: '', name: '', description: '', filePath: '', status: '', createdAt: '', updatedAt: '' }),
-  updateDocument: async () => ({ id: '', name: '', description: '', filePath: '', status: '', createdAt: '', updatedAt: '' }),
+  fetchDocument: async () => ({ id: '', name: '', description: '', filePath: '', status: 'pending', createdAt: '', updatedAt: '' }),
+  uploadDocument: async () => ({ id: '', name: '', description: '', filePath: '', status: 'pending', createdAt: '', updatedAt: '' }),
+  updateDocument: async () => ({ id: '', name: '', description: '', filePath: '', status: 'pending', createdAt: '', updatedAt: '' }),
   deleteDocument: async () => {}
 };
 

@@ -40,6 +40,7 @@ export default function DocumentUploadForm() {
     try {
       await uploadDocument({
         file,
+        name: file.name,
         description: description || undefined,
         templateId: templateId || undefined
       });

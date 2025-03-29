@@ -15,7 +15,7 @@ interface AuthContextType {
 }
 
 // ユーザー型定義
-interface User {
+export interface User {
   id: string;
   name: string;
   email: string;

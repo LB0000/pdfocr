@@ -32,25 +32,12 @@ export interface Template {
 
 // テンプレートフィールド型定義
 export interface TemplateField {
-  id?: string;
+  id: string;
   name: string;
   fieldType: 'text' | 'number' | 'date' | 'select' | 'checkbox';
   description?: string;
   options?: string[];
   required?: boolean;
-}
-
-// テンプレートとフィールドを含む型定義
-export interface TemplateWithFields extends Template {
-  fields: TemplateField[];
-}
-
-// フィールド定義型定義
-export interface FieldDefinition {
-  id: string;
-  name: string;
-  description?: string;
-  fieldType: string;
   validationRegex?: string;
   displayOrder?: number;
   coordinates?: {
@@ -60,6 +47,14 @@ export interface FieldDefinition {
     height: number;
   };
 }
+
+// テンプレートとフィールドを含む型定義
+export interface TemplateWithFields extends Template {
+  fields: TemplateField[];
+}
+
+// フィールド定義型定義
+export type FieldDefinition = TemplateField;
 
 // テンプレート作成データ型定義
 export interface TemplateCreateData {
@@ -90,9 +85,9 @@ const defaultTemplateContext: TemplateContextType = {
   isLoading: false,
   error: null,
   fetchTemplates: async () => {},
-  fetchTemplate: async () => null,
-  createTemplate: async () => null,
-  updateTemplate: async () => null,
+  fetchTemplate: async () => ({ id: '', name: '', description: '', isActive: true, createdAt: '', updatedAt: '', fields: [] }),
+  createTemplate: async () => ({ id: '', name: '', description: '', isActive: true, createdAt: '', updatedAt: '', fields: [] }),
+  updateTemplate: async () => ({ id: '', name: '', description: '', isActive: true, createdAt: '', updatedAt: '', fields: [] }),
   deleteTemplate: async () => {},
   addFieldDefinition: async () => {},
   updateFieldDefinition: async () => {},
