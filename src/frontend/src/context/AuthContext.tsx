@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 // 認証コンテキストの型定義
-interface AuthContextType {
+export interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -14,7 +14,7 @@ interface AuthContextType {
 }
 
 // ユーザー型定義
-interface User {
+export interface User {
   id: string;
   name: string;
   email: string;
