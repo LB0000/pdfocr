@@ -1,17 +1,18 @@
 "use client";
 
 import { useAuth } from '@/context/AuthContext';
-import { useDocuments } from '@/context/DocumentContext';
+import { useDocuments, Document } from '@/context/DocumentContext';
 import { useTemplates } from '@/context/TemplateContext';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { Template } from '@/context/TemplateContext';
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const { documents, loading: documentsLoading, fetchDocuments } = useDocuments();
-  const { templates, loading: templatesLoading, fetchTemplates } = useTemplates();
+  const { documents, isLoading: documentsLoading, fetchDocuments } = useDocuments();
+  const { templates, isLoading: templatesLoading, fetchTemplates } = useTemplates();
   
-  const [recentDocuments, setRecentDocuments] = useState<any[]>([]);
+  const [recentDocuments, setRecentDocuments] = useState<Document[]>([]);
   const [documentStats, setDocumentStats] = useState({
     total: 0,
     pending: 0,
@@ -182,7 +183,7 @@ export default function Dashboard() {
                 {recentDocuments.map((document) => (
                   <tr key={document.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{document.fileName}</div>
+                      <div className="text-sm font-medium text-gray-900">{document.name}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeColor(document.status)}`}>
@@ -236,9 +237,6 @@ export default function Dashboard() {
               <div key={template.id} className="p-4 border border-gray-200 rounded-md hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-sm font-medium text-gray-900">{template.name}</h3>
-                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${template.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                    {template.isActive ? '有効' : '無効'}
-                  </span>
                 </div>
                 <p className="mb-4 text-xs text-gray-500 line-clamp-2">
                   {template.description || '説明はありません'}
