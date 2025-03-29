@@ -1,3 +1,5 @@
+"use client";
+
 import { useTemplates, Template, FieldDefinition } from '@/context/TemplateContext';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';

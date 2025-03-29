@@ -1,3 +1,5 @@
+"use client";
+
 import { useAuth } from '@/context/AuthContext';
 import { useDocuments } from '@/context/DocumentContext';
 import { useTemplates } from '@/context/TemplateContext';

@@ -1,3 +1,5 @@
+"use client";
+
 import { useTemplates, TemplateWithFields, FieldDefinition } from '@/context/TemplateContext';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';

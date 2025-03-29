@@ -1,3 +1,5 @@
+"use client";
+
 import { useAuth } from '@/context/AuthContext';
 import { redirect } from 'next/navigation';
 import TemplateList from '@/components/templates/TemplateList';

@@ -1,3 +1,5 @@
+"use client";
+
 import { useAuth } from '@/context/AuthContext';
 import { redirect } from 'next/navigation';
 import DocumentList from '@/components/documents/DocumentList';

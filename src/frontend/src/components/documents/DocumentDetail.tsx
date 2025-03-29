@@ -1,3 +1,5 @@
+"use client";
+
 import { useDocuments, Document } from '@/context/DocumentContext';
 import { useTemplates } from '@/context/TemplateContext';
 import { useState, useEffect } from 'react';
