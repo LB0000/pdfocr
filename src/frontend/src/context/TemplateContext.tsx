@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { ApiResponse, TemplateResponse, SingleTemplateResponse } from '@/types/api';
 
 // テンプレートコンテキストの型定義
 interface TemplateContextType {
@@ -9,10 +10,9 @@ interface TemplateContextType {
   isLoading: boolean;
   error: string | null;
   fetchTemplates: () => Promise<void>;
-  fetchTemplateById: (id: string) => Promise<void>;
-  getTemplate: (id: string) => Template | null;
-  createTemplate: (data: TemplateCreateData) => Promise<void>;
-  updateTemplate: (id: string, data: Partial<Template>) => Promise<void>;
+  fetchTemplate: (id: string) => Promise<Template>;
+  createTemplate: (data: TemplateCreateData) => Promise<Template>;
+  updateTemplate: (id: string, data: Partial<Template>) => Promise<Template>;
   deleteTemplate: (id: string) => Promise<void>;
   addFieldDefinition: (templateId: string, field: FieldDefinitionCreateData) => Promise<void>;
   updateFieldDefinition: (templateId: string, fieldId: string, data: Partial<FieldDefinition>) => Promise<void>;
@@ -23,26 +23,21 @@ interface TemplateContextType {
 export interface Template {
   id: string;
   name: string;
-  description: string;
-  fields: TemplateField[];
+  description?: string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  fields: TemplateField[];
 }
 
 // テンプレートフィールド型定義
 export interface TemplateField {
-  id: string;
+  id?: string;
   name: string;
+  fieldType: 'text' | 'number' | 'date' | 'select' | 'checkbox';
   description?: string;
-  fieldType: string;
-  validationRegex?: string;
-  coordinates?: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  };
+  options?: string[];
+  required?: boolean;
 }
 
 // テンプレートとフィールドを含む型定義
@@ -69,8 +64,9 @@ export interface FieldDefinition {
 // テンプレート作成データ型定義
 export interface TemplateCreateData {
   name: string;
-  description: string;
-  fields?: FieldDefinitionCreateData[];
+  description?: string;
+  isActive?: boolean;
+  fields?: TemplateField[];
 }
 
 // フィールド定義作成データ型定義
@@ -94,10 +90,9 @@ const defaultTemplateContext: TemplateContextType = {
   isLoading: false,
   error: null,
   fetchTemplates: async () => {},
-  fetchTemplateById: async () => {},
-  getTemplate: () => null,
-  createTemplate: async () => {},
-  updateTemplate: async () => {},
+  fetchTemplate: async () => null,
+  createTemplate: async () => null,
+  updateTemplate: async () => null,
   deleteTemplate: async () => {},
   addFieldDefinition: async () => {},
   updateFieldDefinition: async () => {},
@@ -105,198 +100,180 @@ const defaultTemplateContext: TemplateContextType = {
 };
 
 // コンテキストの作成
-const TemplateContext = createContext<TemplateContextType>(defaultTemplateContext);
+const TemplateContext = createContext<TemplateContextType | undefined>(defaultTemplateContext);
 
 // コンテキストプロバイダーコンポーネント
-export const TemplateProvider = ({ children }: { children: ReactNode }) => {
+export function TemplateProvider({ children }: { children: ReactNode }) {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [currentTemplate, setCurrentTemplate] = useState<Template | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // トークンの取得
-  const getToken = () => {
+  const getAuthToken = () => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('token');
     }
     return null;
   };
 
-  // テンプレート一覧の取得
   const fetchTemplates = async () => {
     setIsLoading(true);
     setError(null);
-    
     try {
-      const token = getToken();
-      if (!token) {
-        throw new Error('認証が必要です');
-      }
-      
+      const token = getAuthToken();
+      if (!token) throw new Error('認証トークンが見つかりません');
+
       const response = await fetch('/api/templates', {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          'Authorization': `Bearer ${token}`,
+        },
       });
-      
-      const data = await response.json();
-      
+
+      const data = await response.json() as ApiResponse<TemplateResponse>;
+
       if (!response.ok) {
         throw new Error(data.message || 'テンプレートの取得に失敗しました');
       }
-      
-      setTemplates(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '予期せぬエラーが発生しました');
+
+      setTemplates(data.data.templates);
+    } catch (error) {
+      console.error('Fetch templates error:', error);
+      setError(error instanceof Error ? error.message : '予期せぬエラーが発生しました');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // テンプレート詳細の取得
-  const fetchTemplateById = async (id: string) => {
+  const fetchTemplate = async (id: string) => {
     setIsLoading(true);
     setError(null);
-    
     try {
-      const token = getToken();
-      if (!token) {
-        throw new Error('認証が必要です');
-      }
-      
+      const token = getAuthToken();
+      if (!token) throw new Error('認証トークンが見つかりません');
+
       const response = await fetch(`/api/templates/${id}`, {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          'Authorization': `Bearer ${token}`,
+        },
       });
-      
-      const data = await response.json();
-      
+
+      const data = await response.json() as ApiResponse<SingleTemplateResponse>;
+
       if (!response.ok) {
         throw new Error(data.message || 'テンプレートの取得に失敗しました');
       }
-      
-      setCurrentTemplate(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '予期せぬエラーが発生しました');
+
+      setCurrentTemplate(data.data.template);
+      return data.data.template;
+    } catch (error) {
+      console.error('Fetch template error:', error);
+      setError(error instanceof Error ? error.message : '予期せぬエラーが発生しました');
+      throw error;
     } finally {
       setIsLoading(false);
     }
   };
 
-  // テンプレートの作成
   const createTemplate = async (data: TemplateCreateData) => {
     setIsLoading(true);
     setError(null);
-    
     try {
-      const token = getToken();
-      if (!token) {
-        throw new Error('認証が必要です');
-      }
-      
+      const token = getAuthToken();
+      if (!token) throw new Error('認証トークンが見つかりません');
+
       const response = await fetch('/api/templates', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           ...data,
-          fields: data.fields || []
-        })
+          fields: data.fields || [],
+        }),
       });
-      
-      const responseData = await response.json();
-      
+
+      const responseData = await response.json() as ApiResponse<SingleTemplateResponse>;
+
       if (!response.ok) {
         throw new Error(responseData.message || 'テンプレートの作成に失敗しました');
       }
-      
-      // 成功したら一覧を更新
-      await fetchTemplates();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '予期せぬエラーが発生しました');
+
+      setTemplates(prev => [...prev, responseData.data.template]);
+      return responseData.data.template;
+    } catch (error) {
+      console.error('Create template error:', error);
+      setError(error instanceof Error ? error.message : '予期せぬエラーが発生しました');
+      throw error;
     } finally {
       setIsLoading(false);
     }
   };
 
-  // テンプレートの更新
   const updateTemplate = async (id: string, data: Partial<Template>) => {
     setIsLoading(true);
     setError(null);
-    
     try {
-      const token = getToken();
-      if (!token) {
-        throw new Error('認証が必要です');
-      }
-      
+      const token = getAuthToken();
+      if (!token) throw new Error('認証トークンが見つかりません');
+
       const response = await fetch(`/api/templates/${id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
       });
-      
-      const responseData = await response.json();
-      
+
+      const responseData = await response.json() as ApiResponse<SingleTemplateResponse>;
+
       if (!response.ok) {
         throw new Error(responseData.message || 'テンプレートの更新に失敗しました');
       }
-      
-      // 現在表示中のテンプレートを更新
-      if (currentTemplate && currentTemplate.id === id) {
-        setCurrentTemplate({ ...currentTemplate, ...data });
-      }
-      
-      // 一覧も更新
-      setTemplates(templates.map(template => 
-        template.id === id ? { ...template, ...data } : template
+
+      setTemplates(prev => prev.map(template => 
+        template.id === id ? responseData.data.template : template
       ));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '予期せぬエラーが発生しました');
+      setCurrentTemplate(responseData.data.template);
+      return responseData.data.template;
+    } catch (error) {
+      console.error('Update template error:', error);
+      setError(error instanceof Error ? error.message : '予期せぬエラーが発生しました');
+      throw error;
     } finally {
       setIsLoading(false);
     }
   };
 
-  // テンプレートの削除
   const deleteTemplate = async (id: string) => {
     setIsLoading(true);
     setError(null);
-    
     try {
-      const token = getToken();
-      if (!token) {
-        throw new Error('認証が必要です');
-      }
-      
+      const token = getAuthToken();
+      if (!token) throw new Error('認証トークンが見つかりません');
+
       const response = await fetch(`/api/templates/${id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          'Authorization': `Bearer ${token}`,
+        },
       });
-      
-      const data = await response.json();
-      
+
+      const data = await response.json() as ApiResponse<void>;
+
       if (!response.ok) {
         throw new Error(data.message || 'テンプレートの削除に失敗しました');
       }
-      
-      // 一覧から削除
-      setTemplates(templates.filter(template => template.id !== id));
-      
-      // 現在表示中のテンプレートをクリア
-      if (currentTemplate && currentTemplate.id === id) {
+
+      setTemplates(prev => prev.filter(template => template.id !== id));
+      if (currentTemplate?.id === id) {
         setCurrentTemplate(null);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '予期せぬエラーが発生しました');
+    } catch (error) {
+      console.error('Delete template error:', error);
+      setError(error instanceof Error ? error.message : '予期せぬエラーが発生しました');
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -308,7 +285,7 @@ export const TemplateProvider = ({ children }: { children: ReactNode }) => {
     setError(null);
     
     try {
-      const token = getToken();
+      const token = getAuthToken();
       if (!token) {
         throw new Error('認証が必要です');
       }
@@ -329,7 +306,7 @@ export const TemplateProvider = ({ children }: { children: ReactNode }) => {
       }
       
       // テンプレート詳細を再取得
-      await fetchTemplateById(templateId);
+      await fetchTemplate(templateId);
     } catch (err) {
       setError(err instanceof Error ? err.message : '予期せぬエラーが発生しました');
     } finally {
@@ -343,7 +320,7 @@ export const TemplateProvider = ({ children }: { children: ReactNode }) => {
     setError(null);
     
     try {
-      const token = getToken();
+      const token = getAuthToken();
       if (!token) {
         throw new Error('認証が必要です');
       }
@@ -364,7 +341,7 @@ export const TemplateProvider = ({ children }: { children: ReactNode }) => {
       }
       
       // テンプレート詳細を再取得
-      await fetchTemplateById(templateId);
+      await fetchTemplate(templateId);
     } catch (err) {
       setError(err instanceof Error ? err.message : '予期せぬエラーが発生しました');
     } finally {
@@ -378,7 +355,7 @@ export const TemplateProvider = ({ children }: { children: ReactNode }) => {
     setError(null);
     
     try {
-      const token = getToken();
+      const token = getAuthToken();
       if (!token) {
         throw new Error('認証が必要です');
       }
@@ -397,17 +374,12 @@ export const TemplateProvider = ({ children }: { children: ReactNode }) => {
       }
       
       // テンプレート詳細を再取得
-      await fetchTemplateById(templateId);
+      await fetchTemplate(templateId);
     } catch (err) {
       setError(err instanceof Error ? err.message : '予期せぬエラーが発生しました');
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // テンプレートの取得
-  const getTemplate = (id: string): Template | null => {
-    return templates.find(template => template.id === id) || null;
   };
 
   // コンテキストの値
@@ -417,8 +389,7 @@ export const TemplateProvider = ({ children }: { children: ReactNode }) => {
     isLoading,
     error,
     fetchTemplates,
-    fetchTemplateById,
-    getTemplate,
+    fetchTemplate,
     createTemplate,
     updateTemplate,
     deleteTemplate,
@@ -432,16 +403,22 @@ export const TemplateProvider = ({ children }: { children: ReactNode }) => {
       {children}
     </TemplateContext.Provider>
   );
-};
+}
 
 // カスタムフック
-export const useTemplate = () => useContext(TemplateContext);
+export function useTemplate() {
+  const context = useContext(TemplateContext);
+  if (context === undefined) {
+    throw new Error('useTemplate must be used within a TemplateProvider');
+  }
+  return context;
+}
 
 // フックのエクスポート
-export const useTemplates = () => {
+export function useTemplates() {
   const context = useContext(TemplateContext);
   if (context === undefined) {
     throw new Error('useTemplates must be used within a TemplateProvider');
   }
   return context;
-};
+}
