@@ -214,7 +214,7 @@ export default function DocumentDetail({ documentId }: DocumentDetailProps) {
                 </p>
               </div>
               
-              {document.confidenceScore > 0 && (
+              {document.confidenceScore !== undefined && document.confidenceScore > 0 && (
                 <div>
                   <p className="text-sm font-medium text-gray-500">認識精度</p>
                   <p className="mt-1 text-sm text-gray-900">
