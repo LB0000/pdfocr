@@ -26,6 +26,8 @@ export interface Document {
   updatedAt: string;
   templateId?: string;
   fields?: DocumentField[];
+  confidenceScore?: number;
+  ocrResult?: string | object;
 }
 
 // ドキュメントフィールド型定義
