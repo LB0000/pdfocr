@@ -89,6 +89,7 @@ export default function TemplateDetail({ templateId }: TemplateDetailProps) {
   
   const addField = () => {
     const newField: FieldDefinition = {
+      id: `temp-${Date.now()}-${fields.length}`,
       name: '',
       fieldType: 'text',
       displayOrder: fields.length
