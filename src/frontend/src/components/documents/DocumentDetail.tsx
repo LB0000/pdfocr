@@ -17,7 +17,7 @@ export default function DocumentDetail({ documentId }: DocumentDetailProps) {
   const [description, setDescription] = useState('');
   const [templateId, setTemplateId] = useState('');
   
-  const { getDocument, updateDocument, deleteDocument } = useDocuments();
+  const { fetchDocumentById, updateDocument, deleteDocument } = useDocuments();
   const { templates, fetchTemplates } = useTemplates();
   const router = useRouter();
   
@@ -25,7 +25,7 @@ export default function DocumentDetail({ documentId }: DocumentDetailProps) {
     const loadData = async () => {
       try {
         setIsLoading(true);
-        const doc = await getDocument(documentId);
+        const doc = await fetchDocumentById(documentId);
         setDocument(doc);
         setDescription(doc.description || '');
         setTemplateId(doc.templateId || '');
@@ -40,7 +40,7 @@ export default function DocumentDetail({ documentId }: DocumentDetailProps) {
     };
     
     loadData();
-  }, [documentId, getDocument, fetchTemplates]);
+  }, [documentId, fetchDocumentById, fetchTemplates]);
   
   const handleUpdate = async () => {
     if (!document) return;
@@ -53,7 +53,7 @@ export default function DocumentDetail({ documentId }: DocumentDetailProps) {
       });
       
       // 更新後の情報を再取得
-      const updatedDoc = await getDocument(documentId);
+      const updatedDoc = await fetchDocumentById(documentId);
       setDocument(updatedDoc);
       setIsEditing(false);
     } catch (err: any) {
