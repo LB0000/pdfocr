@@ -13,7 +13,7 @@ export default function DocumentUploadForm() {
   const [errorMessage, setErrorMessage] = useState('');
   
   const { uploadDocument } = useDocuments();
-  const { templates, fetchTemplates, loading: templatesLoading } = useTemplates();
+  const { templates, fetchTemplates, isLoading: templatesLoading } = useTemplates();
   const router = useRouter();
   
   useEffect(() => {
@@ -38,7 +38,11 @@ export default function DocumentUploadForm() {
     setErrorMessage('');
     
     try {
-      await uploadDocument(file, description, templateId || undefined);
+      await uploadDocument({
+        file,
+        description: description || undefined,
+        templateId: templateId || undefined
+      });
       router.push('/documents');
     } catch (error: any) {
       setErrorMessage(error.message || 'ドキュメントのアップロードに失敗しました');

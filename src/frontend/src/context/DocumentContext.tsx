@@ -10,7 +10,7 @@ interface DocumentContextType {
   error: string | null;
   fetchDocuments: () => Promise<void>;
   fetchDocumentById: (id: string) => Promise<void>;
-  uploadDocument: (file: File, templateId?: string) => Promise<void>;
+  uploadDocument: (data: DocumentUploadData) => Promise<void>;
   updateDocument: (id: string, data: Partial<Document>) => Promise<void>;
   deleteDocument: (id: string) => Promise<void>;
 }
@@ -19,6 +19,7 @@ interface DocumentContextType {
 interface Document {
   id: string;
   name: string;
+  description: string;
   filePath: string;
   status: string;
   createdAt: string;
@@ -34,6 +35,14 @@ interface DocumentField {
   value: string;
   confidence: number;
   fieldDefinitionId: string;
+}
+
+// ドキュメントアップロードデータ型定義
+interface DocumentUploadData {
+  file: File;
+  name?: string;
+  description?: string;
+  templateId?: string;
 }
 
 // デフォルト値の作成
@@ -130,7 +139,7 @@ export const DocumentProvider = ({ children }: { children: ReactNode }) => {
   };
 
   // ドキュメントのアップロード
-  const uploadDocument = async (file: File, templateId?: string) => {
+  const uploadDocument = async (data: DocumentUploadData) => {
     setIsLoading(true);
     setError(null);
     
@@ -141,9 +150,15 @@ export const DocumentProvider = ({ children }: { children: ReactNode }) => {
       }
       
       const formData = new FormData();
-      formData.append('file', file);
-      if (templateId) {
-        formData.append('templateId', templateId);
+      formData.append('file', data.file);
+      if (data.name) {
+        formData.append('name', data.name);
+      }
+      if (data.description) {
+        formData.append('description', data.description);
+      }
+      if (data.templateId) {
+        formData.append('templateId', data.templateId);
       }
       
       const response = await fetch('/api/documents', {
@@ -154,10 +169,10 @@ export const DocumentProvider = ({ children }: { children: ReactNode }) => {
         body: formData
       });
       
-      const data = await response.json();
+      const dataResponse = await response.json();
       
       if (!response.ok) {
-        throw new Error(data.message || 'ドキュメントのアップロードに失敗しました');
+        throw new Error(dataResponse.message || 'ドキュメントのアップロードに失敗しました');
       }
       
       // 成功したら一覧を更新
