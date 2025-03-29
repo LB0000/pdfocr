@@ -17,10 +17,16 @@ export const getAllDocuments = async (req: Request, res: Response) => {
       order: { createdAt: 'DESC' }
     });
     
-    res.status(200).json(documents);
+    res.status(200).json({
+      message: 'ドキュメント一覧の取得に成功しました',
+      documents
+    });
   } catch (error) {
     console.error('ドキュメント取得エラー:', error);
-    res.status(500).json({ message: 'サーバーエラーが発生しました' });
+    res.status(500).json({ 
+      message: 'ドキュメント一覧の取得中にエラーが発生しました',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 
@@ -36,13 +42,22 @@ export const getDocumentById = async (req: Request, res: Response) => {
     });
     
     if (!document) {
-      return res.status(404).json({ message: 'ドキュメントが見つかりません' });
+      return res.status(404).json({ 
+        message: 'ドキュメントが見つかりません',
+        details: { id }
+      });
     }
     
-    res.status(200).json(document);
+    res.status(200).json({
+      message: 'ドキュメントの取得に成功しました',
+      document
+    });
   } catch (error) {
     console.error('ドキュメント取得エラー:', error);
-    res.status(500).json({ message: 'サーバーエラーが発生しました' });
+    res.status(500).json({ 
+      message: 'ドキュメントの取得中にエラーが発生しました',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 
@@ -50,7 +65,33 @@ export const getDocumentById = async (req: Request, res: Response) => {
 export const uploadDocument = async (req: Request, res: Response) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ message: 'ファイルが提供されていません' });
+      return res.status(400).json({ 
+        message: 'ファイルが提供されていません',
+        details: { required: 'PDFファイル' }
+      });
+    }
+
+    // ファイルタイプの検証
+    if (!req.file.mimetype.includes('pdf')) {
+      return res.status(400).json({ 
+        message: 'PDFファイルのみアップロード可能です',
+        details: { 
+          provided: req.file.mimetype,
+          required: 'application/pdf'
+        }
+      });
+    }
+
+    // ファイルサイズの検証（例：10MB以下）
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (req.file.size > maxSize) {
+      return res.status(400).json({ 
+        message: 'ファイルサイズが大きすぎます',
+        details: { 
+          provided: `${Math.round(req.file.size / 1024 / 1024)}MB`,
+          maxSize: '10MB'
+        }
+      });
     }
     
     const { name, description } = req.body;
@@ -58,7 +99,10 @@ export const uploadDocument = async (req: Request, res: Response) => {
     const user = await userRepository.findOneBy({ id: userId });
     
     if (!user) {
-      return res.status(404).json({ message: 'ユーザーが見つかりません' });
+      return res.status(404).json({ 
+        message: 'ユーザーが見つかりません',
+        details: { userId }
+      });
     }
     
     const document = new Document();
@@ -70,10 +114,16 @@ export const uploadDocument = async (req: Request, res: Response) => {
     
     await documentRepository.save(document);
     
-    res.status(201).json(document);
+    res.status(201).json({
+      message: 'ドキュメントのアップロードに成功しました',
+      document
+    });
   } catch (error) {
     console.error('ドキュメントアップロードエラー:', error);
-    res.status(500).json({ message: 'サーバーエラーが発生しました' });
+    res.status(500).json({ 
+      message: 'ドキュメントのアップロード中にエラーが発生しました',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 
@@ -89,7 +139,10 @@ export const updateDocument = async (req: Request, res: Response) => {
     });
     
     if (!document) {
-      return res.status(404).json({ message: 'ドキュメントが見つかりません' });
+      return res.status(404).json({ 
+        message: 'ドキュメントが見つかりません',
+        details: { id }
+      });
     }
     
     if (name) document.name = name;
@@ -98,10 +151,16 @@ export const updateDocument = async (req: Request, res: Response) => {
     
     await documentRepository.save(document);
     
-    res.status(200).json(document);
+    res.status(200).json({
+      message: 'ドキュメントの更新に成功しました',
+      document
+    });
   } catch (error) {
     console.error('ドキュメント更新エラー:', error);
-    res.status(500).json({ message: 'サーバーエラーが発生しました' });
+    res.status(500).json({ 
+      message: 'ドキュメントの更新中にエラーが発生しました',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 
