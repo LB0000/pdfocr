@@ -269,4 +269,10 @@ export const DocumentProvider = ({ children }: { children: ReactNode }) => {
 };
 
 // カスタムフック
-export const useDocument = () => useContext(DocumentContext);
+export const useDocuments = () => {
+  const context = useContext(DocumentContext);
+  if (context === undefined) {
+    throw new Error('useDocuments must be used within a DocumentProvider');
+  }
+  return context;
+};

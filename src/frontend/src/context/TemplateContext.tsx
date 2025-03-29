@@ -23,9 +23,9 @@ interface Template {
   id: string;
   name: string;
   description: string;
+  fields: TemplateField[];
   createdAt: string;
   updatedAt: string;
-  fieldDefinitions: FieldDefinition[];
 }
 
 // フィールド定義型定義
@@ -401,3 +401,12 @@ export const TemplateProvider = ({ children }: { children: ReactNode }) => {
 
 // カスタムフック
 export const useTemplate = () => useContext(TemplateContext);
+
+// フックのエクスポート
+export const useTemplates = () => {
+  const context = useContext(TemplateContext);
+  if (context === undefined) {
+    throw new Error('useTemplates must be used within a TemplateProvider');
+  }
+  return context;
+};
