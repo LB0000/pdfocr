@@ -1,52 +1,29 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne } from 'typeorm';
 import { Document } from './Document';
-import { User } from './User';
-import { FieldDefinition } from './FieldDefinition';
 
-@Entity('document_fields')
+@Entity()
 export class DocumentField {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
-
-  @ManyToOne(() => Document, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'documentId' })
-  document: Document;
+  id!: string;
 
   @Column()
-  documentId: string;
-
-  @ManyToOne(() => FieldDefinition, { nullable: true })
-  @JoinColumn({ name: 'fieldDefinitionId' })
-  fieldDefinition: FieldDefinition;
+  name!: string;
 
   @Column({ nullable: true })
-  fieldDefinitionId: string;
-
-  @Column({ length: 100, nullable: true })
-  name: string;
-
-  @Column({ type: 'text' })
-  value: string;
-
-  @Column({ type: 'text', nullable: true })
-  originalValue: string;
-
-  @Column({ type: 'float', default: 0 })
-  confidenceScore: number;
-
-  @Column({ default: false })
-  isManuallyEdited: boolean;
-
-  @ManyToOne(() => User, { nullable: true })
-  @JoinColumn({ name: 'lastEditedBy' })
-  editor: User;
+  value!: string;
 
   @Column({ nullable: true })
-  lastEditedBy: string;
+  confidence!: number;
+
+  @Column({ nullable: true, type: 'simple-json' })
+  coordinates!: { x: number; y: number; width: number; height: number };
+
+  @ManyToOne(() => Document, document => document.fields)
+  document!: Document;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }

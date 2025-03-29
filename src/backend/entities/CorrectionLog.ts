@@ -1,38 +1,27 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne } from 'typeorm';
 import { Document } from './Document';
 import { User } from './User';
 
-@Entity('correction_logs')
+@Entity()
 export class CorrectionLog {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
-  @ManyToOne(() => Document, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'documentId' })
-  document: Document;
-
-  @Column()
-  documentId: string;
-
-  @Column({ type: 'text', nullable: true })
-  fieldId: string;
-
-  @Column({ type: 'text' })
-  originalValue: string;
-
-  @Column({ type: 'text' })
-  correctedValue: string;
-
-  @Column({ type: 'jsonb', nullable: true })
-  correctionMetadata: any;
+  @ManyToOne(() => Document)
+  document!: Document;
 
   @ManyToOne(() => User)
-  @JoinColumn({ name: 'correctedBy' })
-  corrector: User;
+  user!: User;
 
   @Column()
-  correctedBy: string;
+  fieldName!: string;
+
+  @Column({ nullable: true })
+  originalValue!: string;
+
+  @Column({ nullable: true })
+  correctedValue!: string;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 }

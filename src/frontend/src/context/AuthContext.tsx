@@ -1,107 +1,174 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import axiosInstance from '@/lib/axios';
 
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: 'admin' | 'manager' | 'user';
-}
-
+// 認証コンテキストの型定義
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   error: string | null;
   login: (email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
-  register: (userData: RegisterData) => Promise<void>;
-  isAuthenticated: boolean;
+  updateUser: (userData: Partial<User>) => Promise<void>;
 }
 
-interface RegisterData {
-  email: string;
-  password: string;
+// ユーザー型定義
+interface User {
+  id: string;
   name: string;
-  role?: 'admin' | 'manager' | 'user';
+  email: string;
+  role: string;
 }
 
-interface AuthProviderProps {
-  children: ReactNode;
-}
+// デフォルト値
+const defaultAuthContext: AuthContextType = {
+  user: null,
+  loading: false,
+  error: null,
+  login: async () => {},
+  register: async () => {},
+  logout: () => {},
+  updateUser: async () => {},
+};
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+// コンテキスト作成
+const AuthContext = createContext<AuthContextType>(defaultAuthContext);
 
-export const AuthProvider = ({ children }: AuthProviderProps) => {
+// コンテキストプロバイダー
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  // 初期化時にローカルストレージからユーザー情報を取得
   useEffect(() => {
-    // ページロード時に認証状態を確認
-    const checkAuth = async () => {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setLoading(false);
-        return;
-      }
-
+    const initAuth = async () => {
       try {
-        const response = await axiosInstance.get('/auth/me');
-        setUser(response.data.user);
-        setError(null);
+        const token = localStorage.getItem('token');
+        if (token) {
+          // トークンがある場合、ユーザー情報を取得
+          const response = await fetch('/api/auth/me', {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          
+          if (response.ok) {
+            const userData = await response.json();
+            setUser(userData);
+          } else {
+            // トークンが無効な場合はログアウト
+            localStorage.removeItem('token');
+          }
+        }
       } catch (err) {
-        console.error('認証エラー:', err);
-        localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
-        setError('セッションが無効です。再度ログインしてください。');
+        console.error('認証初期化エラー:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    checkAuth();
+    initAuth();
   }, []);
 
+  // ログイン関数
   const login = async (email: string, password: string) => {
     setLoading(true);
     setError(null);
     
     try {
-      const response = await axiosInstance.post('/auth/login', {
-        email,
-        password,
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, password })
       });
       
-      const { token, refreshToken, user } = response.data;
+      const data = await response.json();
       
-      localStorage.setItem('token', token);
-      localStorage.setItem('refreshToken', refreshToken);
+      if (!response.ok) {
+        throw new Error(data.message || 'ログインに失敗しました');
+      }
       
-      setUser(user);
+      // トークンをローカルストレージに保存
+      localStorage.setItem('token', data.token);
+      
+      // ユーザー情報を設定
+      setUser(data.user);
     } catch (err: any) {
-      console.error('ログインエラー:', err);
-      setError(err.response?.data?.error?.message || 'ログインに失敗しました。');
+      setError(err.message);
       throw err;
     } finally {
       setLoading(false);
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
-    setUser(null);
-  };
-
-  const register = async (userData: RegisterData) => {
+  // 登録関数
+  const register = async (name: string, email: string, password: string) => {
     setLoading(true);
     setError(null);
     
     try {
-      await axiosInstance.post('/auth/register', userData);
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name, email, password })
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || '登録に失敗しました');
+      }
+      
+      // 登録後に自動ログイン
+      await login(email, password);
     } catch (err: any) {
-      console.error('登録エラー:', err);
-      setError(err.response?.data?.error?.message || 'ユーザー登録に失敗しました。');
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ログアウト関数
+  const logout = () => {
+    localStorage.removeItem('token');
+    setUser(null);
+  };
+
+  // ユーザー情報更新関数
+  const updateUser = async (userData: Partial<User>) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('認証されていません');
+      }
+      
+      const response = await fetch('/api/auth/update', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(userData)
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'ユーザー情報の更新に失敗しました');
+      }
+      
+      // ユーザー情報を更新
+      setUser(prev => prev ? { ...prev, ...data.user } : null);
+    } catch (err: any) {
+      setError(err.message);
       throw err;
     } finally {
       setLoading(false);
@@ -113,18 +180,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     loading,
     error,
     login,
-    logout,
     register,
-    isAuthenticated: !!user,
+    logout,
+    updateUser
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
+}
 
-export const useAuth = (): AuthContextType => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+// カスタムフック
+export const useAuth = () => useContext(AuthContext);

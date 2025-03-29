@@ -1,53 +1,35 @@
-import { useForm } from 'react-hook-form';
-import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
-interface RegisterFormData {
-  name: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-  role?: 'admin' | 'manager' | 'user';
-}
-
-interface RegisterFormProps {
-  showRoleSelection?: boolean;
-  onSuccess?: () => void;
-}
-
-export default function RegisterForm({ showRoleSelection = false, onSuccess }: RegisterFormProps) {
-  const { register: registerUser, error: authError } = useAuth();
+export default function RegisterForm() {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    watch,
-  } = useForm<RegisterFormData>({
-    defaultValues: {
-      role: 'user',
-    },
-  });
+  const { register } = useAuth();
+  const router = useRouter();
   
-  const password = watch('password');
-  
-  const onSubmit = async (data: RegisterFormData) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setIsLoading(true);
+    setErrorMessage('');
+    
+    // パスワード確認
+    if (password !== confirmPassword) {
+      setErrorMessage('パスワードが一致しません');
+      setIsLoading(false);
+      return;
+    }
+    
     try {
-      const { confirmPassword, ...userData } = data;
-      await registerUser(userData);
-      if (onSuccess) {
-        onSuccess();
-      } else {
-        // 登録成功時はログインページにリダイレクト
-        window.location.href = '/login';
-      }
-    } catch (error) {
-      // エラーはAuthContextで処理されるため、ここでは何もしない
-      console.error('Registration error:', error);
+      await register(name, email, password);
+      router.push('/dashboard');
+    } catch (error: any) {
+      setErrorMessage(error.message || '登録に失敗しました');
     } finally {
       setIsLoading(false);
     }
@@ -56,120 +38,93 @@ export default function RegisterForm({ showRoleSelection = false, onSuccess }: R
   return (
     <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
       <div className="text-center">
-        <h1 className="text-2xl font-bold">ユーザー登録</h1>
-        <p className="mt-2 text-gray-600">新しいアカウントを作成</p>
+        <h1 className="text-2xl font-bold">PDF2MD システム</h1>
+        <p className="mt-2 text-gray-600">新規アカウント登録</p>
       </div>
       
-      {authError && (
-        <div className="p-3 text-sm text-red-500 bg-red-50 rounded-md">
-          {authError}
+      {errorMessage && (
+        <div className="p-4 text-red-700 bg-red-100 rounded-md">
+          {errorMessage}
         </div>
       )}
       
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
         <div>
-          <Input
+          <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+            名前
+          </label>
+          <input
             id="name"
-            label="名前"
+            name="name"
             type="text"
-            autoComplete="name"
-            error={errors.name?.message}
-            {...register('name', {
-              required: '名前は必須です',
-              minLength: {
-                value: 2,
-                message: '名前は2文字以上である必要があります',
-              },
-            })}
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
           />
         </div>
         
         <div>
-          <Input
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            メールアドレス
+          </label>
+          <input
             id="email"
-            label="メールアドレス"
+            name="email"
             type="email"
-            autoComplete="email"
-            error={errors.email?.message}
-            {...register('email', {
-              required: 'メールアドレスは必須です',
-              pattern: {
-                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                message: '有効なメールアドレスを入力してください',
-              },
-            })}
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
           />
         </div>
         
         <div>
-          <Input
+          <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            パスワード
+          </label>
+          <input
             id="password"
-            label="パスワード"
+            name="password"
             type="password"
-            autoComplete="new-password"
-            error={errors.password?.message}
-            {...register('password', {
-              required: 'パスワードは必須です',
-              minLength: {
-                value: 8,
-                message: 'パスワードは8文字以上である必要があります',
-              },
-              pattern: {
-                value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-                message: 'パスワードは少なくとも1つの大文字、小文字、数字、特殊文字を含む必要があります',
-              },
-            })}
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
           />
         </div>
         
         <div>
-          <Input
+          <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+            パスワード（確認）
+          </label>
+          <input
             id="confirmPassword"
-            label="パスワード（確認）"
+            name="confirmPassword"
             type="password"
-            autoComplete="new-password"
-            error={errors.confirmPassword?.message}
-            {...register('confirmPassword', {
-              required: 'パスワード確認は必須です',
-              validate: value => value === password || 'パスワードが一致しません',
-            })}
+            required
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
           />
         </div>
         
-        {showRoleSelection && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              ロール
-            </label>
-            <select
-              className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
-              {...register('role')}
-            >
-              <option value="user">一般ユーザー</option>
-              <option value="manager">管理者</option>
-              <option value="admin">システム管理者</option>
-            </select>
-          </div>
-        )}
-        
         <div>
-          <Button
+          <button
             type="submit"
-            className="w-full"
-            isLoading={isLoading}
             disabled={isLoading}
+            className="flex justify-center w-full px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
           >
-            登録
-          </Button>
+            {isLoading ? '登録中...' : '登録する'}
+          </button>
+        </div>
+        
+        <div className="text-sm text-center">
+          <a href="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+            すでにアカウントをお持ちの方はこちら
+          </a>
         </div>
       </form>
-      
-      <div className="text-center text-sm">
-        <span className="text-gray-600">すでにアカウントをお持ちですか？</span>{' '}
-        <a href="/login" className="text-blue-600 hover:text-blue-800">
-          ログイン
-        </a>
-      </div>
     </div>
   );
 }

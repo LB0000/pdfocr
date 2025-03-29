@@ -1,33 +1,23 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { User } from './User';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import { FieldDefinition } from './FieldDefinition';
 
-@Entity('document_templates')
+@Entity()
 export class DocumentTemplate {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
-
-  @Column({ length: 100 })
-  name: string;
-
-  @Column({ type: 'text', nullable: true })
-  description: string;
-
-  @Column({ default: false })
-  isDefault: boolean;
-
-  @Column({ default: true })
-  isActive: boolean;
-
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'createdBy' })
-  creator: User;
+  id!: string;
 
   @Column()
-  createdBy: string;
+  name!: string;
+
+  @Column({ nullable: true })
+  description!: string;
+
+  @OneToMany(() => FieldDefinition, field => field.template)
+  fields!: FieldDefinition[];
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }

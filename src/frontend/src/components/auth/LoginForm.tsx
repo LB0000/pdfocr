@@ -1,33 +1,26 @@
-import { useForm } from 'react-hook-form';
-import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-
-interface LoginFormData {
-  email: string;
-  password: string;
-}
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function LoginForm() {
-  const { login, error: authError } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginFormData>();
+  const { login } = useAuth();
+  const router = useRouter();
   
-  const onSubmit = async (data: LoginFormData) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setIsLoading(true);
+    setErrorMessage('');
+    
     try {
-      await login(data.email, data.password);
-      // ログイン成功時はダッシュボードにリダイレクト
-      window.location.href = '/dashboard';
-    } catch (error) {
-      // エラーはAuthContextで処理されるため、ここでは何もしない
-      console.error('Login error:', error);
+      await login(email, password);
+      router.push('/dashboard');
+    } catch (error: any) {
+      setErrorMessage(error.message || 'ログインに失敗しました');
     } finally {
       setIsLoading(false);
     }
@@ -36,68 +29,63 @@ export default function LoginForm() {
   return (
     <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
       <div className="text-center">
-        <h1 className="text-2xl font-bold">PDF2MD拡張システム</h1>
+        <h1 className="text-2xl font-bold">PDF2MD システム</h1>
         <p className="mt-2 text-gray-600">アカウントにログイン</p>
       </div>
       
-      {authError && (
-        <div className="p-3 text-sm text-red-500 bg-red-50 rounded-md">
-          {authError}
+      {errorMessage && (
+        <div className="p-4 text-red-700 bg-red-100 rounded-md">
+          {errorMessage}
         </div>
       )}
       
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
         <div>
-          <Input
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            メールアドレス
+          </label>
+          <input
             id="email"
-            label="メールアドレス"
+            name="email"
             type="email"
-            autoComplete="email"
-            error={errors.email?.message}
-            {...register('email', {
-              required: 'メールアドレスは必須です',
-              pattern: {
-                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                message: '有効なメールアドレスを入力してください',
-              },
-            })}
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
           />
         </div>
         
         <div>
-          <Input
+          <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            パスワード
+          </label>
+          <input
             id="password"
-            label="パスワード"
+            name="password"
             type="password"
-            autoComplete="current-password"
-            error={errors.password?.message}
-            {...register('password', {
-              required: 'パスワードは必須です',
-              minLength: {
-                value: 8,
-                message: 'パスワードは8文字以上である必要があります',
-              },
-            })}
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
           />
         </div>
         
         <div>
-          <Button
+          <button
             type="submit"
-            className="w-full"
-            isLoading={isLoading}
             disabled={isLoading}
+            className="flex justify-center w-full px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
           >
-            ログイン
-          </Button>
+            {isLoading ? 'ログイン中...' : 'ログイン'}
+          </button>
+        </div>
+        
+        <div className="text-sm text-center">
+          <a href="/register" className="font-medium text-indigo-600 hover:text-indigo-500">
+            アカウントをお持ちでない方はこちら
+          </a>
         </div>
       </form>
-      
-      <div className="text-center text-sm">
-        <a href="#" className="text-blue-600 hover:text-blue-800">
-          パスワードをお忘れですか？
-        </a>
-      </div>
     </div>
   );
 }

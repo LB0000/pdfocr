@@ -1,24 +1,29 @@
 import { Router } from 'express';
-import authRoutes from './auth.routes';
-import userRoutes from './user.routes';
-import documentRoutes from './document.routes';
-import templateRoutes from './template.routes';
-import fieldRoutes from './field.routes';
-import modelRoutes from './model.routes';
+import multer from 'multer';
+import { register, login } from '../controllers/auth.controller';
+import { getAllDocuments, getDocumentById, uploadDocument, updateDocument, deleteDocument } from '../controllers/document.controller';
+import { getAllTemplates, getTemplateById, createTemplate, updateTemplate, deleteTemplate } from '../controllers/template.controller';
+import { authMiddleware } from '../middlewares/auth.middleware';
 
 const router = Router();
+const upload = multer({ dest: 'uploads/' });
 
-// 各ルートの設定
-router.use('/auth', authRoutes);
-router.use('/users', userRoutes);
-router.use('/documents', documentRoutes);
-router.use('/templates', templateRoutes);
-router.use('/fields', fieldRoutes);
-router.use('/models', modelRoutes);
+// 認証ルート
+router.post('/auth/register', register);
+router.post('/auth/login', login);
 
-// ヘルスチェック用エンドポイント
-router.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
-});
+// ドキュメントルート
+router.get('/documents', authMiddleware, getAllDocuments);
+router.get('/documents/:id', authMiddleware, getDocumentById);
+router.post('/documents', authMiddleware, upload.single('file'), uploadDocument);
+router.put('/documents/:id', authMiddleware, updateDocument);
+router.delete('/documents/:id', authMiddleware, deleteDocument);
+
+// テンプレートルート
+router.get('/templates', authMiddleware, getAllTemplates);
+router.get('/templates/:id', authMiddleware, getTemplateById);
+router.post('/templates', authMiddleware, createTemplate);
+router.put('/templates/:id', authMiddleware, updateTemplate);
+router.delete('/templates/:id', authMiddleware, deleteTemplate);
 
 export default router;

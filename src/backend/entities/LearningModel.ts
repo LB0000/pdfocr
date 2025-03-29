@@ -1,46 +1,31 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { User } from './User';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
-@Entity('learning_models')
+@Entity()
 export class LearningModel {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
-
-  @Column({ length: 100 })
-  name: string;
-
-  @Column({ type: 'text', nullable: true })
-  description: string;
-
-  @Column({ type: 'text' })
-  modelPath: string;
-
-  @Column({ type: 'jsonb', nullable: true })
-  modelMetadata: any;
-
-  @Column({ type: 'float', default: 0 })
-  accuracy: number;
-
-  @Column({
-    type: 'enum',
-    enum: ['training', 'active', 'archived'],
-    default: 'training'
-  })
-  status: 'training' | 'active' | 'archived';
-
-  @Column({ type: 'integer', default: 1 })
-  version: number;
-
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'createdBy' })
-  creator: User;
+  id!: string;
 
   @Column()
-  createdBy: string;
+  name!: string;
+
+  @Column({ nullable: true })
+  description!: string;
+
+  @Column()
+  modelType!: string;
+
+  @Column({ nullable: true })
+  modelPath!: string;
+
+  @Column({ type: 'simple-json', nullable: true })
+  parameters!: Record<string, any>;
+
+  @Column({ default: 'active' })
+  status!: string;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }

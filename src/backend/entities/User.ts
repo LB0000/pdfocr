@@ -1,32 +1,25 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
-@Entity('users')
+@Entity()
 export class User {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
-  @Column({ length: 100 })
-  name: string;
+  @Column()
+  name!: string;
 
   @Column({ unique: true })
-  email: string;
+  email!: string;
 
-  @Column({ select: false })
-  password: string;
+  @Column()
+  passwordHash!: string;
 
-  @Column({
-    type: 'enum',
-    enum: ['admin', 'manager', 'user'],
-    default: 'user'
-  })
-  role: 'admin' | 'manager' | 'user';
-
-  @Column({ default: true })
-  isActive: boolean;
+  @Column({ default: 'user' })
+  role!: string;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }
