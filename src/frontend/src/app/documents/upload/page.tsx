@@ -16,9 +16,9 @@ export default function DocumentUploadPage() {
 }
 
 function DocumentUploadContent() {
-  const { user, loading } = useAuth();
+  const { user, isLoading } = useAuth();
   
-  if (!loading && !user) {
+  if (!isLoading && !user) {
     redirect('/login');
   }
   
