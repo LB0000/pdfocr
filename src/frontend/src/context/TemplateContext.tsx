@@ -70,7 +70,7 @@ export interface FieldDefinition {
 export interface TemplateCreateData {
   name: string;
   description: string;
-  fields: FieldDefinitionCreateData[];
+  fields?: FieldDefinitionCreateData[];
 }
 
 // フィールド定義作成データ型定義
@@ -201,7 +201,10 @@ export const TemplateProvider = ({ children }: { children: ReactNode }) => {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify({
+          ...data,
+          fields: data.fields || []
+        })
       });
       
       const responseData = await response.json();
